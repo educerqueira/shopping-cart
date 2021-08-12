@@ -9,6 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+
     <title>Teste Carrinho</title>
 </head>
 
@@ -17,25 +18,60 @@
         <v-app>
             <v-main>
                 <v-container>
-                    <v-card class="mx-auto" max-width="344">
-                        <v-list-item three-line>
-                            <v-list-item-content>
-                                <div class="text-overline mb-4">
-                                    OVERLINE
-                                </div>
-                                <v-list-item-title class="text-h5 mb-1">
-                                    Headline 5
-                                </v-list-item-title>
-                                <v-list-item-subtitle>Greyhound divisely hello coldly fonwderfully
-                                </v-list-item-subtitle>
-                            </v-list-item-content>
+                    <v-card class="mx-auto" max-width="600">
+                        <!--                         <v-row>
+                            <v-col cols="12" class="text-center">
+                                <v-card-title>{{title}}</v-card-title>
+                                <v-divider></v-divider>
+                            </v-col>
+                        </v-row> -->
 
-                            <v-list-item-avatar tile size="80" color="grey"></v-list-item-avatar>
-                        </v-list-item>
+                        <v-card-title>
+                            <v-row class="justify-center display-1 black--text font-weight-bold pa-2">{{title}}</v-row>
 
-                        <v-card-actions>
-                            <v-btn outlined rounded text>
-                                Button
+                        </v-card-title>
+                        <v-divider></v-divider>
+
+                        <v-card-text>
+                            <v-row v-for="(item, index) in items" :key="index">
+                                <v-col cols="4">
+                                    <v-list-item-avatar tile size="120" class="ml-6" style="border: solid 1px; border-color: grey;" >
+                                        <v-img :src="item.imageUrl">
+
+                                        </v-img>
+                                    </v-list-item-avatar>
+                                </v-col>
+                                <v-col cols="8">
+                                    <v-list-item-content>
+                                        <p class="title font-weight-black black--text">{{item.name}}</p>
+                                        <p class="grey--text subheading mt-2">{{formatMoney(item.price)}}</p>
+                                        <p class="body-1 black--text">{{formatMoney(item.sellingPrice)}}</p>
+                                    </v-list-item-content>
+                                </v-col>
+                            </v-row>
+                        </v-card-text>
+                        <v-divider></v-divider>
+
+                        <v-card-text>
+                            <v-row class="d-flex justify-space-between pa-8">
+                                <div class="text-h5 font-weight-bold black--text">Total:</div>
+                                <div class="text-h5 font-weight-bold black--text">{{formatMoney(total)}}</div>
+                            </v-row>
+
+                            <v-row v-if="total > 10" class="justify-center ">
+                                <v-alert dense text color="green" class="rounded-pill text-center headline"
+                                    min-width="450" min-height="50">
+                                    Parabéns, sua compra tem frete grátis!
+                                </v-alert>
+
+                            </v-row>
+                        </v-card-text>
+
+                        <v-divider></v-divider>
+
+                        <v-card-actions class="pa-4">
+                            <v-btn class="headline pa-6" block color="blue" dark>
+                                Finalizar compra
                             </v-btn>
                         </v-card-actions>
                     </v-card>
@@ -47,6 +83,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 
     <script>
@@ -54,9 +91,52 @@
             el: '#app',
             vuetify: new Vuetify(),
             data: {
-                text: 'Teste sendo feito',
-                name: 'Eduardo'
+                title: 'Meu carrinho',
+                items: []
+            },
+            computed: {
+                total(){
+                    if(this.items.length > 0){
+                        const listedPrices = this.items.map(i => i.sellingPrice)
+                        return listedPrices.reduce((total, currentElement) => total + currentElement)
+                    }
+                    return 0;
+                }
+            },
+            async created(){
+                await this.getAllShoppingCartItems();
+
+            },
+            methods: {
+                formatMoney(value) {
+                    if (value) {
+                        return value.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
+                    }
+                },
+                async getAllShoppingCartItems() {
+                    const BASE_URL_OVER=`https://s3.us-west-2.amazonaws.com/secure.notion-static.com/5bbd6fdd-abae-411d-96cc-1a5d76d3803b/abaixo-10-reais.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAT73L2G45O3KS52Y5%2F20210812%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20210812T023952Z&X-Amz-Expires=86400&X-Amz-Signature=f03303dcf468046285f3df7c8b09c9fe7cff0b9868a79fb77adc94275ada1500&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22abaixo-10-reais.json%22`
+                    const BASE_URL_DOWN=`https://s3.us-west-2.amazonaws.com/secure.notion-static.com/11b895d0-bc64-4f3a-bfa9-7c652be8d415/acima-10-reais.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAT73L2G45O3KS52Y5%2F20210812%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20210812T031230Z&X-Amz-Expires=86400&X-Amz-Signature=315a13148d1a036a7d8e80355b1524586d34398f1baa409e84bca386ff6deecf&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22acima-10-reais.json%22`
+                    try {
+                        const response = await axios.get(BASE_URL_OVER);
+                        if(response?.status === 200 && response?.data){
+                            const items = response?.data?.items
+                            const shoppingCartItems = items.map(i => {
+                                return {
+                                    name: i.name,
+                                    sellingPrice: i.sellingPrice,
+                                    price: i.price,
+                                    imageUrl: i.imageUrl
+                                }
+                            })
+                            this.items = shoppingCartItems;
+                        }
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+
             }
+
         });
     </script>
 
